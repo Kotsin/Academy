@@ -13,6 +13,9 @@ contract Staking {
         bool claimed;
     }
 
+    //100%
+    uint256 public constant HUNDRED_PERCENT = 10000;
+
     //sc owner
     address public owner;
 
@@ -26,11 +29,14 @@ contract Staking {
     uint256 public tokensLeft;
     //percentage
     uint256 public percentage;
+    //staking start time
     uint256 public startTime;
+    //duration of an epoch in seconds
     uint256 public epochDuration;
+    //amount of epochs
     uint256 public amountOfEpochs;
+    //shows if staking was already initialized
     bool public initialized;
-    uint256 public constant HUNDRED_PERCENT = 10000;
 
     //mapping for users
     mapping(address => User) public users;
@@ -39,6 +45,11 @@ contract Staking {
         owner = msg.sender;
         stakingToken = IERC20Metadata(_stakingToken);
         rewardToken = IERC20Metadata(_rewardToken);
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not an owner");
+        _;
     }
 
     function initialize(
@@ -60,11 +71,6 @@ contract Staking {
             address(this),
             ((_totalAmount * _percentage * _amountOfEpochs) / HUNDRED_PERCENT)
         );
-    }
-
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Not an owner");
-        _;
     }
 
     function deposit(uint256 _amount) external {
