@@ -41,6 +41,10 @@ contract Staking {
     //mapping for users
     mapping(address => User) public users;
 
+    event Deposited(address _address, uint256 _amount);
+    event Withdrawn(address _address);
+    event Claimed(address _address, uint256 _amount);
+
     constructor(address _stakingToken, address _rewardToken) {
         owner = msg.sender;
         stakingToken = IERC20Metadata(_stakingToken);
@@ -83,6 +87,7 @@ contract Staking {
         });
         tokensLeft -= _amount;
         stakingToken.safeTransferFrom(msg.sender, address(this), _amount);
+        emit Deposited(msg.sender, _amount);
     }
 
     function withdraw() external {
@@ -91,6 +96,7 @@ contract Staking {
         require(user.claimed, "not claimed yet");
         users[msg.sender].amount = 0;
         stakingToken.transfer(msg.sender, user.amount);
+        emit Withdrawn(msg.sender);
     }
 
     function claimRewards() external {
@@ -102,9 +108,9 @@ contract Staking {
         );
         require(!user.claimed, "already claimed");
         users[msg.sender].claimed = true;
-        rewardToken.transfer(
-            msg.sender,
-            ((user.amount * percentage * (amountOfEpochs)) / HUNDRED_PERCENT)
-        );
+        uint256 amount = (user.amount * percentage * (amountOfEpochs)) /
+            HUNDRED_PERCENT;
+        rewardToken.transfer(msg.sender, amount);
+        emit Claimed(msg.sender, amount);
     }
 }
