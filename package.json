@@ -3,7 +3,7 @@
   "scripts": {
     "compile": "npm hardhat compile",
     "test": "npm hardhat test",
-    "coverage": "npm hardhat coverage",
+    "coverage": "npm hardhat coverage"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-network-helpers": "^1.0.7",
