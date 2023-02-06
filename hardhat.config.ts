@@ -14,7 +14,7 @@ import { HardhatUserConfig } from "hardhat/types";
 dotenv.config();
 
 const config: HardhatUserConfig = {
-  solidity: "0.8.16",
+  solidity: "0.8.17",
   networks: {
     sepolia: {
       url: process.env.SEPOLIA_URL ?? "",
