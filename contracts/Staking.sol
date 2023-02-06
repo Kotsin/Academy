@@ -95,7 +95,7 @@ contract Staking {
         require(user.amount > 0, "nothing to withdraw");
         require(user.claimed, "not claimed yet");
         users[msg.sender].amount = 0;
-        stakingToken.transfer(msg.sender, user.amount);
+        stakingToken.safeTransfer(msg.sender, user.amount);
         emit Withdrawn(msg.sender);
     }
 
@@ -110,7 +110,7 @@ contract Staking {
         users[msg.sender].claimed = true;
         uint256 amount = (user.amount * percentage * (amountOfEpochs)) /
             HUNDRED_PERCENT;
-        rewardToken.transfer(msg.sender, amount);
+        rewardToken.safeTransfer(msg.sender, amount);
         emit Claimed(msg.sender, amount);
     }
 }

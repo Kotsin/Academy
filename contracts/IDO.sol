@@ -70,8 +70,8 @@ contract IDO is AccessControl, ReentrancyGuard {
         price = _price;
         minAmount = _minAmount;
         maxAmount = _maxAmount;
-        uint256 totalPercent;
-        for (uint128 i; i < _vesting.length; i++) {
+        uint256 totalPercent = 0;
+        for (uint256 i = 0; i < _vesting.length; i++) {
             require(_vesting[i].unlockTime > _endTime, "bad unlockTime");
             vesting.push(_vesting[i]);
             totalPercent += _vesting[i].unlockPercent;
@@ -175,7 +175,7 @@ contract IDO is AccessControl, ReentrancyGuard {
         User memory user = users[_address];
         require(vesting[0].unlockTime <= block.timestamp, "Time have not came");
 
-        uint256 availablePercent;
+        uint256 availablePercent = 0;
         for (uint256 i = 0; i < vesting.length; i++) {
             if (vesting[i].unlockTime <= block.timestamp) {
                 availablePercent += vesting[i].unlockPercent;
