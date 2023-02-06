@@ -21,17 +21,18 @@ contract IDO is AccessControl, ReentrancyGuard {
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     uint256 public constant PRECISION = 100000;
 
-    uint256 public immutable startTime; // IDO sale phase start time
-    uint256 public immutable endTime; // IDO sale phase end time
-    uint256 public immutable price; // Price of one TST token in USD, e.g. 200000 means 2 usdc per 1 tst
-    uint256 public immutable minAmount; // Min purchase amount in TST
-    uint256 public immutable maxAmount; // Max purchase amount in TST
+    uint256 public startTime; // IDO sale phase start time
+    uint256 public endTime; // IDO sale phase end time
+    uint256 public price; // Price of one TST token in USD, e.g. 200000 means 2 usdc per 1 tst
+    uint256 public minAmount; // Min purchase amount in TST
+    uint256 public maxAmount; // Max purchase amount in TST
     uint256 public goal; // After reaching this mark, IDO stops
+    uint256 public totalTST; // Total amount of TST for sale
     uint256 public totalUSDCAccumulated; // Amount of USDC collected
     uint256 public totalTSTSold; // Amount of TST reserved for claim
 
-    address public immutable usdc; // The address of the USD Coin contract
-    address public immutable tst; // Address of the TST Token contract
+    address public usdc; // The address of the USD Coin contract
+    address public tst; // Address of the TST Token contract
 
     VestingRule[] public vesting; //Array of struct Vesting rule which contain info about vesting in this campaign
 
@@ -90,15 +91,17 @@ contract IDO is AccessControl, ReentrancyGuard {
      * @dev initializes IDO goal
      *
      * @param _goal IDO goal in USDC
-     */ 
+     */
     function initialize(uint256 _goal) external onlyAdmin {
         require(goal == 0, "already initialized");
         goal = _goal;
+        totalTST =
+            (_goal * PRECISION * 10**IERC20Metadata(tst).decimals()) /
+            (price * 10**IERC20Metadata(usdc).decimals());
         IERC20Metadata(tst).safeTransferFrom(
             msg.sender,
             address(this),
-            (_goal * PRECISION * IERC20Metadata(tst).decimals()) /
-                (price * IERC20Metadata(usdc).decimals())
+            totalTST
         );
     }
 
@@ -110,7 +113,11 @@ contract IDO is AccessControl, ReentrancyGuard {
     function buyToken(uint256 _amount) external nonReentrant {
         require(block.timestamp > startTime, "too early");
         require(block.timestamp < endTime, "too late");
-        require(_amount >= minAmount && users[msg.sender].bought + _amount <= maxAmount, "bad amount");
+        require(
+            _amount >= minAmount &&
+                users[msg.sender].bought + _amount <= maxAmount,
+            "bad amount"
+        );
         uint256 usdcAmount = ((_amount *
             (10**IERC20Metadata(usdc).decimals()) *
             price) / (PRECISION * (10**IERC20Metadata(tst).decimals())));
@@ -148,8 +155,7 @@ contract IDO is AccessControl, ReentrancyGuard {
     function withdrawUSDC() external onlyAdmin {
         require(block.timestamp > endTime, "too early");
         uint256 balanceUSDC = IERC20Metadata(usdc).balanceOf(address(this));
-        uint256 tstRemaining = IERC20Metadata(tst).balanceOf(address(this)) -
-            totalTSTSold;
+        uint256 tstRemaining = totalTST - totalTSTSold;
         if (balanceUSDC > 0) {
             IERC20Metadata(usdc).safeTransfer(msg.sender, balanceUSDC);
         }
